@@ -75,27 +75,27 @@ class VideoRender{
     let imageMesh = new THREE.Mesh(this.geometry,this.material);
     this.renderingObj.add(imageMesh);
   }
- 
+
   updateVideoCenter(event: MouseEvent){
     if(this.mouseTapped){
       // do scale action
       let maxDiffY = 200;
       var yPercent = (event.y - this.tapPointY) / maxDiffY;
-      yPercent = Math.max(-1, Math.min(1, yPercent));  // -1 -> 1
-      this.scale *= Math.pow(2,yPercent);  // 0.5 -> 2
-      this.scale = Math.max(0.5, Math.min(2, this.scale));
+      yPercent     = Math.max(-1, Math.min(1, yPercent)); // -1 -> 1
+      this.scale  *= Math.pow(2,yPercent); // 0.5 -> 2
+      var maxScale = Math.min(this.videoW/this.screenW, this.videoH/this.screenH);
+      this.scale   = Math.max(0.5, Math.min(maxScale, this.scale));
       this.shader.uniforms.videoScale.value = this.scale;
     } else {
       // do move action
       var maxDiffX       = 200;
       var maxDiffY       = 100;
       var centerXPercent = (event.x - 450) / maxDiffX;
-      var centerYPercent = (event.y - 200) / maxDiffY;
+      var centerYPercent = (200 - event.y) / maxDiffY;
       centerXPercent     = Math.max(-1, Math.min(1, centerXPercent));
       centerYPercent     = Math.max(-1, Math.min(1, centerYPercent));
       var centerX        = centerXPercent * (this.videoW - this.screenW*this.scale)/2;
       var centerY        = centerYPercent * (this.videoH - this.screenH*this.scale)/2;
-      centerY           *= -1;
       this.shader.uniforms.videoCenter.value = new THREE.Vector2(centerX,centerY);
     }
 

@@ -50,7 +50,7 @@ class MainApp {
       this.renderer = new THREE.WebGLRenderer({ alpha: true });
       // Set dimensions to 500x500 and background color to white
       this.renderer.setSize(this.screenW, this.screenH);
-
+ 
       // Bind the renderer to the HTML, parenting it to our 'content' DIV
       // document.body.appendChild(this.renderer.domElement);
       document.getElementById('content').appendChild(this.renderer.domElement);

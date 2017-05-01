@@ -75,7 +75,7 @@ class VideoRender{
     let imageMesh = new THREE.Mesh(this.geometry,this.material);
     this.renderingObj.add(imageMesh);
   }
-
+ 
   updateVideoCenter(event: MouseEvent){
     if(this.mouseTapped){
       // do scale action

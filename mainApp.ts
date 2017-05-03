@@ -8,13 +8,57 @@ class MainApp {
     video          : HTMLVideoElement;
     videoCanvas    : HTMLCanvasElement;
     videoCanvasCtx : CanvasRenderingContext2D;
-    videoRender    : VideoRender;
     videoTexture   : THREE.Texture;
+
+    videoButterfly          : HTMLVideoElement;
+    videoCanvasButterfly    : HTMLCanvasElement;
+    videoCanvasCtxButterfly : CanvasRenderingContext2D;
+    videoTextureButterfly   : THREE.Texture;
+
+    uniforms : any;
+
+    vertexFunc = (`
+      varying vec2 vUv;
+       void main() {
+         vUv = uv;
+         gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+       }
+       `);
+
+    fragFunc = (`
+      vec4 videoColor;
+      vec4 butterColor;
+      varying vec2 vUv;
+      uniform sampler2D videoTexture;
+      uniform sampler2D butterflyTexture;
+      vec2 butterflyUV;
+       void main() {
+         videoColor = texture2D(videoTexture,vUv);
+         if( (vUv.x > 0.5 && vUv.x< 0.75) && (vUv.y > 0.25 && vUv.y< 0.5)){
+           butterflyUV.x = (vUv.x - 0.5) * 4.0;
+           butterflyUV.y = (vUv.y - 0.25) * 4.0;
+           butterColor= texture2D(butterflyTexture,butterflyUV);
+          if(butterColor.r < 0.1 && butterColor.g < 0.1 && butterColor.b < 0.1 ){
+            gl_FragColor = videoColor;
+            // gl_FragColor = butterColor;
+          } else {
+            float alpha = (butterColor.r + butterColor.g + butterColor.b) / 3.0;
+            gl_FragColor = mix(videoColor,butterColor,alpha);
+          }
+         } else {
+             gl_FragColor = videoColor;
+         }
+       }
+     `);
+
 
     screenW : number;
     screenH : number;
     videoW  : number;
-    videoH  : number;;
+    videoH  : number;
+    videoButterflyW  : number;
+    videoButterflyH  : number;
+
 
     constructor() {
       // Load coordinates
@@ -23,7 +67,10 @@ class MainApp {
       this.screenW = 900;
       this.screenH = 600;
       this.videoW  = 2048;
-      this.videoH  = 1024;;
+      this.videoH  = 1024;
+      this.videoButterflyW  = 1280;
+      this.videoButterflyH  = 720;
+
 
       // Create the renderer, in this case using WebGL, we want an alpha channel
       this.renderer = new THREE.WebGLRenderer({ alpha: true });
@@ -52,6 +99,7 @@ class MainApp {
       this.video.play();
       //make your video canvas
       this.videoCanvas    = document.createElement('canvas');
+      this.videoCanvas.id = "videoCanvas";
       this.videoCanvasCtx = this.videoCanvas.getContext('2d');
       //set its size
       this.videoCanvas.width  = this.videoW;
@@ -62,10 +110,40 @@ class MainApp {
       this.videoCanvasCtx.fillRect(0,0,this.videoW,this.videoH);
       //add canvas to new texture
       this.videoTexture = new THREE.Texture(this.videoCanvas);
+      // setup video
+      this.videoButterfly     = document.createElement('video');
+      this.videoButterfly.src = "Resources/Butterfly.mp4";
+      this.videoButterfly.load();
+      this.videoButterfly.play();
+      //make your video canvas
+      this.videoCanvasButterfly    = document.createElement('canvas');
+      this.videoCanvasButterfly.id = "videoCanvasButterfly";
+      this.videoCanvasCtxButterfly = this.videoCanvasButterfly.getContext('2d');
+
+      //set its size
+      this.videoCanvasButterfly.width  = this.videoButterflyW;
+      this.videoCanvasButterfly.height = this.videoButterflyH;
+
+      //draw a black rectangle so that your spheres don't start out transparent
+      this.videoCanvasCtxButterfly.fillStyle = "#000000";
+      this.videoCanvasCtxButterfly.fillRect(0,0,this.videoButterflyW,this.videoButterflyH);
+      //add canvas to new texture
+      this.videoTextureButterfly = new THREE.Texture(this.videoCanvasButterfly);
       // Create a Scene
       this.scene       = new THREE.Scene();
       var cubeGeometry = new THREE.SphereGeometry(500, 60, 40);
-      var sphereMat    = new THREE.MeshBasicMaterial({map: this.videoTexture});
+      /////////////////////////   custom material
+      // var sphereMat    = new THREE.MeshBasicMaterial({map: this.videoTexture});
+      this.uniforms = {
+        "videoTexture" : {type:"sampler2D",value:this.videoTexture},
+        "butterflyTexture" : {type:"sampler2D",value:this.videoTextureButterfly},
+      }
+      var sphereMat =  new THREE.ShaderMaterial({
+        uniforms        : this.uniforms,
+        vertexShader    : this.vertexFunc,
+        fragmentShader  : this.fragFunc
+      });
+      /////////////////////////   custom material
       sphereMat.side   = THREE.BackSide;
       var cube         = new THREE.Mesh(cubeGeometry, sphereMat);
       this.scene.add(cube);
@@ -96,6 +174,14 @@ class MainApp {
       //tell texture object it needs to be updated
       this.videoTexture.needsUpdate = true;
     }
+    //check for vid data
+  if(this.videoButterfly.readyState === this.videoButterfly.HAVE_ENOUGH_DATA){
+    //draw video to canvas starting from upper left corner
+    this.videoCanvasCtxButterfly.drawImage(this.videoButterfly, 0, 0,this.videoButterflyW,this.videoButterflyH);
+    //tell texture object it needs to be updated
+    this.videoTextureButterfly.needsUpdate = true;
+  }
+
       this.renderer.render(this.scene, this.camera);
     }
 

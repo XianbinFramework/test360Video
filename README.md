@@ -42,6 +42,7 @@ Also video rendering size, texture size , camera position declare here.
 ##### VideoRender.ts
 
 Main class to render video, webgl shader is created here.
+** no use any more**
 
 
 ## TODO

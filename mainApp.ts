@@ -97,38 +97,15 @@ class MainApp {
       this.video.src = "Resources/3000.mp4";
       this.video.load();
       this.video.play();
-      //make your video canvas
-      this.videoCanvas    = document.createElement('canvas');
-      this.videoCanvas.id = "videoCanvas";
-      this.videoCanvasCtx = this.videoCanvas.getContext('2d');
-      //set its size
-      this.videoCanvas.width  = this.videoW;
-      this.videoCanvas.height = this.videoH;
-
-      //draw a black rectangle so that your spheres don't start out transparent
-      this.videoCanvasCtx.fillStyle = "#000000";
-      this.videoCanvasCtx.fillRect(0,0,this.videoW,this.videoH);
       //add canvas to new texture
-      this.videoTexture = new THREE.Texture(this.videoCanvas);
-      // setup video
+      this.videoTexture = new THREE.Texture(this.video);
+      // setup second video
       this.videoButterfly     = document.createElement('video');
       this.videoButterfly.src = "Resources/Butterfly.mp4";
       this.videoButterfly.load();
       this.videoButterfly.play();
-      //make your video canvas
-      this.videoCanvasButterfly    = document.createElement('canvas');
-      this.videoCanvasButterfly.id = "videoCanvasButterfly";
-      this.videoCanvasCtxButterfly = this.videoCanvasButterfly.getContext('2d');
-
-      //set its size
-      this.videoCanvasButterfly.width  = this.videoButterflyW;
-      this.videoCanvasButterfly.height = this.videoButterflyH;
-
-      //draw a black rectangle so that your spheres don't start out transparent
-      this.videoCanvasCtxButterfly.fillStyle = "#000000";
-      this.videoCanvasCtxButterfly.fillRect(0,0,this.videoButterflyW,this.videoButterflyH);
-      //add canvas to new texture
-      this.videoTextureButterfly = new THREE.Texture(this.videoCanvasButterfly);
+      // second video texture
+      this.videoTextureButterfly = new THREE.Texture(this.videoButterfly);
       // Create a Scene
       this.scene       = new THREE.Scene();
       var cubeGeometry = new THREE.SphereGeometry(500, 60, 40);
@@ -168,19 +145,13 @@ class MainApp {
 
       // update
       //check for vid data
-    if(this.video.readyState === this.video.HAVE_ENOUGH_DATA){
-      //draw video to canvas starting from upper left corner
-      this.videoCanvasCtx.drawImage(this.video, 0, 0,this.videoW,this.videoH);
-      //tell texture object it needs to be updated
-      this.videoTexture.needsUpdate = true;
-    }
-    //check for vid data
-  if(this.videoButterfly.readyState === this.videoButterfly.HAVE_ENOUGH_DATA){
-    //draw video to canvas starting from upper left corner
-    this.videoCanvasCtxButterfly.drawImage(this.videoButterfly, 0, 0,this.videoButterflyW,this.videoButterflyH);
-    //tell texture object it needs to be updated
-    this.videoTextureButterfly.needsUpdate = true;
-  }
+      if( this.video.readyState === this.video.HAVE_ENOUGH_DATA ){
+        this.videoTexture.needsUpdate = true;
+      }
+      if( this.videoButterfly.readyState === this.videoButterfly.HAVE_ENOUGH_DATA ){
+        this.videoTextureButterfly.needsUpdate = true;
+      }
+
 
       this.renderer.render(this.scene, this.camera);
     }
